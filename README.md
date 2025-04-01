@@ -1,1 +1,1 @@
-Exercicio de criacao de projeto Spring para a disciplina de desenvolvimento backend
+Projeto criado para colocar em prática os conhecimentos aprendidos em sala de aula
