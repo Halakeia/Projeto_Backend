@@ -1,9 +1,0 @@
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/ProdutoApplication.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/dtos/CategoryDTO.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/entities/Category.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/repository/CategoryRepository.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/resources/CategoryResource.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/services/CategoryService.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/services/exceptions/ResourceExceptionListener.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/services/exceptions/ResourceNotFound.java
-/home/raissa/Projeto_Backend/produto/src/main/java/br/edu/ifmg/produto/services/exceptions/StandartError.java

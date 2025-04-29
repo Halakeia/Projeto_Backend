@@ -1,9 +1,0 @@
-br/edu/ifmg/produto/services/CategoryService.class
-br/edu/ifmg/produto/services/exceptions/ResourceExceptionListener.class
-br/edu/ifmg/produto/ProdutoApplication.class
-br/edu/ifmg/produto/resources/CategoryResource.class
-br/edu/ifmg/produto/repository/CategoryRepository.class
-br/edu/ifmg/produto/services/exceptions/StandartError.class
-br/edu/ifmg/produto/dtos/CategoryDTO.class
-br/edu/ifmg/produto/services/exceptions/ResourceNotFound.class
-br/edu/ifmg/produto/entities/Category.class
