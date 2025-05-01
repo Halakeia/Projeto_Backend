@@ -1,6 +1,5 @@
 package br.edu.ifmg.produto.services;
 
-import br.edu.ifmg.produto.dtos.CategoryDTO;
 import br.edu.ifmg.produto.dtos.ProductDTO;
 import br.edu.ifmg.produto.entities.Category;
 import br.edu.ifmg.produto.entities.Product;
@@ -13,12 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class ProductService {
@@ -28,38 +28,38 @@ public class ProductService {
 
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(Pageable pageable){
+    public Page<ProductDTO> findAll(Pageable pageable) {
 
         Page<Product> list =
-             productRepository.findAll(pageable);
-            return
-                    list.map(
-                            product ->
-                                    new ProductDTO(product)
-                                            .add( linkTo(methodOn(ProductResource.class).findAll(null)).withSelfRel() )
-                                            .add( linkTo(methodOn(ProductResource.class).findById(product.getId())).withRel("Get a product") )
+                productRepository.findAll(pageable);
+        return
+                list.map(
+                        product ->
+                                new ProductDTO(product)
+                                        .add(linkTo(methodOn(ProductResource.class).findAll(null)).withSelfRel())
+                                        .add(linkTo(methodOn(ProductResource.class).findById(product.getId())).withRel("Get a product"))
 
 
-                    );
+                );
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id){
+    public ProductDTO findById(Long id) {
 
         Optional<Product> obj =
                 productRepository.findById(id);
 
         Product product =
                 obj.orElseThrow(
-                   ()->
-                    new ResourceNotFound("Product not found " + id));
+                        () ->
+                                new ResourceNotFound("Product not found " + id));
 
-            return new ProductDTO(product)
-                  //  .add( linkTo().withSelfRel() )
-                  //  .add( linkTo().withRel("All products") )
-                  //  .add( linkTo().withRel("Update product") )
-                  //  .add( linkTo().withRel("Delete product") )
-                    ;
+        return new ProductDTO(product)
+                .add(linkTo(methodOn(ProductResource.class).findById(product.getId())).withSelfRel())
+                .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products")) //se deixar pagebale nulo ele vai usar as variáveis padrões
+                .add(linkTo(methodOn(ProductResource.class).update(product.getId(), null)).withRel("Update product"))
+                .add(linkTo(methodOn(ProductResource.class).delete(product.getId())).withRel("Delete product"))
+        ;
 
 
     }
@@ -71,7 +71,10 @@ public class ProductService {
         copyDtoToEntity(dto, entity);
         entity = productRepository.save(entity);
 
-         return new ProductDTO(entity);
+        return new ProductDTO(entity)
+                .add(linkTo(methodOn(ProductResource.class).findById(entity.getId())).withRel("Find product"))
+                .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products"))
+                .add(linkTo(methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product"));
     }
 
     @Transactional
@@ -82,9 +85,11 @@ public class ProductService {
             copyDtoToEntity(dto, entity);
             entity = productRepository.save(entity);
 
-            return new ProductDTO(entity);
-        }
-        catch(EntityNotFoundException e) {
+            return new ProductDTO(entity)
+                    .add(linkTo(methodOn(ProductResource.class).findById(entity.getId())).withRel("Find product"))
+                    .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products"))
+                    .add(linkTo(methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product"));
+        } catch (EntityNotFoundException e) {
             throw new ResourceNotFound("Product not found " + id);
         }
     }
@@ -98,32 +103,21 @@ public class ProductService {
         }
         try {
             productRepository.deleteById(id);
-        }
-        catch(DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             throw new DatabaseException("Integrity violation");
         }
     }
 
-
-
-
-
-
-
-
-
-
-
     private void copyDtoToEntity(ProductDTO dto, Product entity) {
-     entity.setName(dto.getName());
-     entity.setDescription(dto.getDescription());
-     entity.setPrice(dto.getPrice());
-     entity.setImageUrl(dto.getImageUrl());
+        entity.setName(dto.getName());
+        entity.setDescription(dto.getDescription());
+        entity.setPrice(dto.getPrice());
+        entity.setImageUrl(dto.getImageUrl());
 
-     dto.getCategories()
+        dto.getCategories()
                 .forEach(c ->
-                      entity.getCategories().add(new Category(c)));
- }
+                        entity.getCategories().add(new Category(c)));
+    }
 
 }
 

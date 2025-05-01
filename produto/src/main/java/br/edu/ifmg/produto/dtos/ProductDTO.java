@@ -3,10 +3,8 @@ package br.edu.ifmg.produto.dtos;
 import br.edu.ifmg.produto.entities.Category;
 import br.edu.ifmg.produto.entities.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
 import org.springframework.hateoas.RepresentationModel;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;

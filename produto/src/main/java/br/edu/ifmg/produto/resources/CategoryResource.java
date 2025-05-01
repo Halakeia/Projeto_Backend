@@ -1,8 +1,6 @@
 package br.edu.ifmg.produto.resources;
 
 import br.edu.ifmg.produto.dtos.CategoryDTO;
-import br.edu.ifmg.produto.entities.Category;
-import br.edu.ifmg.produto.repository.CategoryRepository;
 import br.edu.ifmg.produto.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,8 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/category")
