@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -46,6 +47,7 @@ class ProductServiceTest {
         existingId = 1L;
         nonExistingId = 2L;
         Product product = Factory.createProduct();
+        product.setId(existingId);
         page = new PageImpl<>(List.of(product,product));
 
     }
@@ -104,6 +106,8 @@ class ProductServiceTest {
         Page<ProductDTO> result =
                 productService.findAll(pagina);
 
+        System.out.println("========"+result.getContent());
+
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1,
                 result.getContent().getFirst().getId());
@@ -113,6 +117,20 @@ class ProductServiceTest {
 
 
 
+    }
+    @Test
+    @DisplayName("Verificando a busca de um produto existente")
+    void findByIdShouldReturnProdutctWhenIdExists() {
+        Product pro = Factory.createProduct(); //cria um produto sem id definido
+        pro.setId(existingId);
+        
+        when(productRepository.findById(existingId)).thenReturn(Optional.of(pro));
+        
+        ProductDTO product = productService.findById(existingId);
+        
+        Assertions.assertNotNull(product);
+        Assertions.assertEquals(existingId, product.getId());
+        verify(productRepository, times(1)).findById(existingId);
     }
 
 
