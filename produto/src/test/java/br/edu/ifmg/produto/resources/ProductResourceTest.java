@@ -11,35 +11,33 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.
+        servlet.request.MockMvcRequestBuilders.*;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.http.MediaType;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import org.junit.jupiter.api.DisplayName;
 
-
-/*
-Teste automatizado permite a integração contínua. Podendo ser executado várias vezes a cada novo commit ou merge.
- */
-@WebMvcTest(ProductResource.class) //mais leve que o @SpringBootTest pois não carrega o contexto inteiro da aplicação
+@WebMvcTest(ProductResource.class)
 class ProductResourceTest {
-    @Autowired
-    private MockMvc mockMvc; //responsável por simular as requisições HTTP sem subir um servidor local
 
-    @MockitoBean //camada que quero mocar.
+    //responsavel pelas requisições,
+    //a qual quero testar.
+    @Autowired
+    private MockMvc mockMvc;
+
+    //camada que quero mokar.
+    @MockitoBean
     private ProductService productService;
 
     private ProductDTO productDTO;
     private PageImpl<ProductDTO> page;
-    private long nonExistingId;
-    private long existingId;
+    private Long existingId;
+    private Long nonExistingId;
 
     @BeforeEach
     void setUp() {
@@ -53,33 +51,49 @@ class ProductResourceTest {
     @Test
     void findAllShouldReturnAllPage() throws Exception {
 
-        //cria o método mocado
+        //Criar o método mocado
         when(productService.findAll(any()))
                 .thenReturn(page);
 
-        //testar requisição
-        ResultActions resultActions =
-                mockMvc.perform(get("/product").accept("application/json"));
+        //Testa a requisição
+        ResultActions result =
+                mockMvc.perform(
+                        get("/product")
+                                .accept("application/json")
+                );
 
-        //analisa o resultado
-        resultActions.andExpect(status().isOk());
-        
+        //Analisa o resultado
+        result.andExpect(status().isOk());
+
+
     }
+
     @Test
-    @DisplayName("findById deve retornar ProductDTO quando ID existir")
     void findByIdShouldReturnProductWhenIdExists() throws Exception {
+
+        //Criar o método mokado
         when(productService.findById(existingId))
                 .thenReturn(productDTO);
 
-        ResultActions result = 
-            mockMvc.perform(get("/product/{id}", existingId)
-                    .accept(MediaType.APPLICATION_JSON));
+        //Testa a requisição
+        ResultActions result =
+                mockMvc.perform(
+                        get("/product/{id}", existingId)
+                                .accept("application/json")
+                );
 
-        result.andExpect(status().isOk())
-          .andExpect(jsonPath("$.id").value(existingId))
-          .andExpect(jsonPath("$.name").exists())
-          .andExpect(jsonPath("$.description").exists());
+        //Analisa o resultado
+        result.andExpect(status().isOk());
+        result.andExpect(jsonPath("$.id").value(existingId));
+        result.andExpect(jsonPath("$.name")
+                .value(productDTO.getName()));
+        result.andExpect(jsonPath("$.description")
+                .value(productDTO.getDescription()));
 
-        verify(productService).findById(existingId);
     }
+
+
+
+
+
 }
