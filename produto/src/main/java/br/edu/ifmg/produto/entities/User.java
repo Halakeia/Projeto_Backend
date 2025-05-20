@@ -52,7 +52,16 @@ public class User {
         this(entity);
         this.roles = roles;
     }
+    public void addRole(Role role){
+        roles.add(role);
+    }
 
+    public boolean hasRole(String roleName){
+        return
+                !roles.stream().filter(r ->
+                        r.getAuthority().equals(roleName)
+                ).toList().isEmpty();
+    }
 
     public Long getId() {
         return id;
