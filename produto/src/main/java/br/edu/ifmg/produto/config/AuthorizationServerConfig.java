@@ -73,7 +73,8 @@ public class AuthorizationServerConfig {
     @Order(2)
     public SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.securityMatcher("/oauth2/**", "/.well-known/**").with(OAuth2AuthorizationServerConfigurer.authorizationServer(), Customizer.withDefaults());
+        http.securityMatcher("/oauth2/**", "/.well-known/**")
+    .with(new OAuth2AuthorizationServerConfigurer(), Customizer.withDefaults());
 
         // @formatter:off
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
