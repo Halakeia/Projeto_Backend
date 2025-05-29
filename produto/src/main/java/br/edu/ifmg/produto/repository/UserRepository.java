@@ -14,16 +14,18 @@ public interface UserRepository extends
 
     User findByEmail(String email);
     User findByEmailAndPassword(String email, String password);
-@Query(
-        nativeQuery = true,
-        value= """
-                SELECT u.email as username, u.password, r.id as roleID, r.authority_id
-                
-                    FROM tbl_user u 
-                    INNER JOIN tb_user_role ur *ON u.id = ur.user_id 
-                    INNER JOIN tb_role r on r.id = ur.role_id
-                    WHERE u.email = :email
-                """
-)
-List<UserDetailsProjection> searchUserAndRolesByEmail(String username);
+
+    @Query(nativeQuery = true,
+            value= """
+                   SELECT u.email as username,
+                          u.password,
+                          r.id as roleId,
+                          r.authority
+                   FROM tb_user u
+                   INNER JOIN tb_user_role ur ON u.id = ur.user_id 
+                   INNER JOIN tb_role r ON r.id = ur.role_id 
+                   WHERE u.email = :email                   
+                   """
+    )
+    List<UserDetailsProjection> searchUserAndRoleByEmail(String email);
 }

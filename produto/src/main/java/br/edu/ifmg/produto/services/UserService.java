@@ -64,13 +64,14 @@ public class UserService implements UserDetailsService {
     public UserDTO insert(UserInsertDTO dto) {
 
         User entity = new User();
-        copyDtoToEntity(dto, entity);
+        copyDtoToEntity(dto,entity);
         entity.setPassword(
                 passwordEncoder.encode(dto.getPassword()));
         User novo = repository.save(entity);
         return new UserDTO(novo);
 
     }
+
 
 
     private void copyDtoToEntity(UserDTO dto, User entity) {
@@ -99,7 +100,8 @@ public class UserService implements UserDetailsService {
             entity = repository.save(entity);
             return new UserDTO(entity);
 
-        } catch (EntityNotFoundException e) {
+        }
+        catch(EntityNotFoundException e) {
             throw new ResourceNotFound("User not found " + id);
         }
     }
@@ -113,26 +115,34 @@ public class UserService implements UserDetailsService {
         }
         try {
             repository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
+        }
+        catch(DataIntegrityViolationException e) {
             throw new DatabaseException("Integrity violation");
         }
     }
 
-
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        List<UserDetailsProjection> result = repository.searchUserAndRolesByEmail(username);
-        if (result.isEmpty()) {
+        List<UserDetailsProjection> result
+                = repository.searchUserAndRoleByEmail(username);
+
+        if (result.isEmpty()){
             throw new UsernameNotFoundException("User not found");
         }
+
         User user = new User();
         user.setEmail(result.get(0).getUsername());
         user.setPassword(result.get(0).getPassword());
-        for(UserDetailsProjection p : result){
-            user.addRole(new Role(p.getRoleId(), p.getAuthority()));
+        for (UserDetailsProjection p : result) {
+            user.addRole(new Role(p.getRoleId(),p.getAuthority() ));
         }
+
         return user;
     }
+
+
+
+
 }
 
 

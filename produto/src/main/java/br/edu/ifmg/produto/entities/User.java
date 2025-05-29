@@ -40,7 +40,7 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public User(User entity){
+    public User(User entity) {
         this.id = entity.getId();
         this.firstName = entity.getFirstName();
         this.lastName = entity.getLastName();
@@ -48,15 +48,16 @@ public class User implements UserDetails {
         this.password = entity.getPassword();
     }
 
-    public User(User entity, Set<Role> roles){
+    public User(User entity, Set<Role> roles) {
         this(entity);
         this.roles = roles;
     }
-    public void addRole(Role role){
+
+    public void addRole(Role role) {
         roles.add(role);
     }
 
-    public boolean hasRole(String roleName){
+    public boolean hasRole(String roleName) {
         return
                 !roles.stream().filter(r ->
                         r.getAuthority().equals(roleName)
