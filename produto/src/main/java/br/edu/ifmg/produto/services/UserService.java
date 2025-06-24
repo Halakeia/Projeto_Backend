@@ -4,16 +4,19 @@ import br.edu.ifmg.produto.dtos.ProductDTO;
 import br.edu.ifmg.produto.dtos.RoleDTO;
 import br.edu.ifmg.produto.dtos.UserDTO;
 import br.edu.ifmg.produto.dtos.UserInsertDTO;
+import br.edu.ifmg.produto.entities.Category;
 import br.edu.ifmg.produto.entities.Product;
 import br.edu.ifmg.produto.entities.Role;
 import br.edu.ifmg.produto.entities.User;
 import br.edu.ifmg.produto.projections.UserDetailsProjection;
+import br.edu.ifmg.produto.repository.CategoryRepository;
 import br.edu.ifmg.produto.repository.RoleRepository;
 import br.edu.ifmg.produto.repository.UserRepository;
 import br.edu.ifmg.produto.resources.ProductResource;
 import br.edu.ifmg.produto.services.exceptions.DatabaseException;
 import br.edu.ifmg.produto.services.exceptions.ResourceNotFound;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -42,6 +45,8 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
 
     @Transactional(readOnly = true)
@@ -141,8 +146,22 @@ public class UserService implements UserDetailsService {
     }
 
 
+    public UserDTO signup( UserInsertDTO dto) {
+
+        User entity = new User();
+        copyDtoToEntity(dto,entity);
+
+        Role role =
+                roleRepository.findByAuthority("ROLE_OPERATOR");
+        entity.getRoles().clear();
+        entity.getRoles().add(role);//inserimos o perfil de Operadora
+        entity.setPassword(
+                passwordEncoder.encode(dto.getPassword()));
+        User novo = repository.save(entity);
+        return new UserDTO(novo);
 
 
+    }
 }
 
 
