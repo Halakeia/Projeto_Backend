@@ -1,6 +1,8 @@
 package br.edu.ifmg.produto.services;
 
+import br.edu.ifmg.produto.dtos.CategoryDTO;
 import br.edu.ifmg.produto.dtos.ProductDTO;
+import br.edu.ifmg.produto.dtos.ProductListDTO;
 import br.edu.ifmg.produto.entities.Category;
 import br.edu.ifmg.produto.entities.Product;
 import br.edu.ifmg.produto.repository.ProductRepository;
@@ -12,13 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class ProductService {
@@ -28,7 +29,7 @@ public class ProductService {
 
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(Pageable pageable) {
+    public Page<ProductDTO> findAll(Pageable pageable){
 
         Page<Product> list =
                 productRepository.findAll(pageable);
@@ -36,30 +37,30 @@ public class ProductService {
                 list.map(
                         product ->
                                 new ProductDTO(product)
-                                        .add(linkTo(methodOn(ProductResource.class).findAll(null)).withSelfRel())
-                                        .add(linkTo(methodOn(ProductResource.class).findById(product.getId())).withRel("Get a product"))
+                                        .add( linkTo(methodOn(ProductResource.class).findAll(null)).withSelfRel() )
+                                        .add( linkTo(methodOn(ProductResource.class).findById(product.getId())).withRel("Get a product") )
 
 
                 );
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id) {
+    public ProductDTO findById(Long id){
 
         Optional<Product> obj =
                 productRepository.findById(id);
 
         Product product =
                 obj.orElseThrow(
-                        () ->
+                        ()->
                                 new ResourceNotFound("Product not found " + id));
 
         return new ProductDTO(product)
-                .add(linkTo(methodOn(ProductResource.class).findById(product.getId())).withSelfRel())
-                .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products")) //se deixar pagebale nulo ele vai usar as variáveis padrões
-                .add(linkTo(methodOn(ProductResource.class).update(product.getId(), null)).withRel("Update product"))
-                .add(linkTo(methodOn(ProductResource.class).delete(product.getId())).withRel("Delete product"))
-        ;
+                .add( linkTo( methodOn(ProductResource.class).findById(product.getId()) ).withSelfRel() )
+                .add( linkTo( methodOn(ProductResource.class).findAll(null) ).withRel("All products") )
+                .add( linkTo( methodOn(ProductResource.class).update(product.getId(), new ProductDTO(product))).withRel("Update product") )
+                .add( linkTo( methodOn(ProductResource.class).delete(product.getId())).withRel("Delete product") )
+                ;
 
 
     }
@@ -72,9 +73,11 @@ public class ProductService {
         entity = productRepository.save(entity);
 
         return new ProductDTO(entity)
-                .add(linkTo(methodOn(ProductResource.class).findById(entity.getId())).withRel("Find product"))
-                .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products"))
-                .add(linkTo(methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product"));
+                .add( linkTo( methodOn(ProductResource.class).findById(entity.getId()) ).withRel("Get a product") )
+                .add( linkTo( methodOn(ProductResource.class).findAll(null) ).withRel("All products") )
+                .add( linkTo( methodOn(ProductResource.class).update(entity.getId(), new ProductDTO(entity))).withRel("Update product") )
+                .add( linkTo( methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product") )
+                ;
     }
 
     @Transactional
@@ -86,10 +89,14 @@ public class ProductService {
             entity = productRepository.save(entity);
 
             return new ProductDTO(entity)
-                    .add(linkTo(methodOn(ProductResource.class).findById(entity.getId())).withRel("Find product"))
-                    .add(linkTo(methodOn(ProductResource.class).findAll(null)).withRel("All products"))
-                    .add(linkTo(methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product"));
-        } catch (EntityNotFoundException e) {
+                    .add( linkTo( methodOn(ProductResource.class).findById(entity.getId()) ).withRel("Find a product") )
+                    .add( linkTo( methodOn(ProductResource.class).findAll(null) ).withRel("All products") )
+                    .add( linkTo( methodOn(ProductResource.class).delete(entity.getId())).withRel("Delete product") )
+
+
+                    ;
+        }
+        catch(EntityNotFoundException e) {
             throw new ResourceNotFound("Product not found " + id);
         }
     }
@@ -103,10 +110,21 @@ public class ProductService {
         }
         try {
             productRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
+        }
+        catch(DataIntegrityViolationException e) {
             throw new DatabaseException("Integrity violation");
         }
     }
+
+
+
+
+
+
+
+
+
+
 
     private void copyDtoToEntity(ProductDTO dto, Product entity) {
         entity.setName(dto.getName());
@@ -119,8 +137,10 @@ public class ProductService {
                         entity.getCategories().add(new Category(c)));
     }
 
+    public Page<ProductListDTO> findAllPaged(String name, String categoryId, Pageable pageable) {
+        return null;
+    }
 }
-
 
 
 
