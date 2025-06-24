@@ -55,6 +55,8 @@ public class UserResource {
         UserDTO dto = userService.findById(id);
         return ResponseEntity.ok().body(dto);
     }
+
+
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping(produces="application/json")
     @Operation(
@@ -71,6 +73,32 @@ public class UserResource {
     public ResponseEntity<UserDTO>
     insert(@Valid @RequestBody UserInsertDTO dto) {
         UserDTO user = userService.insert(dto);
+
+        URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+
+        return ResponseEntity.created(uri).body(user);
+    }
+
+
+    @PostMapping(value="/signup",produces="application/json")
+    @Operation(
+            description = "Sign Up",
+            summary = "You can sign up.",
+            responses = {
+                    @ApiResponse(description = "created", responseCode = "201"),
+                    @ApiResponse(description = "Bad request", responseCode = "400"),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401"),
+                    @ApiResponse(description = "Forbbiden", responseCode = "403")
+            }
+    )
+
+    public ResponseEntity<UserDTO>
+    signup(@Valid @RequestBody UserInsertDTO dto) {
+        UserDTO user = userService.signup(dto);
 
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()

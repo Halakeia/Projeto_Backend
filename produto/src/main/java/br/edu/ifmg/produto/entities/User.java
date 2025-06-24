@@ -1,140 +1,168 @@
-package br.edu.ifmg.produto.entities;
+package br.edu.ifmg.produto.services;
 
-
-import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
+import br.edu.ifmg.produto.dtos.ProductDTO;
+import br.edu.ifmg.produto.dtos.RoleDTO;
+import br.edu.ifmg.produto.dtos.UserDTO;
+import br.edu.ifmg.produto.dtos.UserInsertDTO;
+import br.edu.ifmg.produto.entities.Category;
+import br.edu.ifmg.produto.entities.Product;
+import br.edu.ifmg.produto.entities.Role;
+import br.edu.ifmg.produto.entities.User;
+import br.edu.ifmg.produto.projections.UserDetailsProjection;
+import br.edu.ifmg.produto.repository.CategoryRepository;
+import br.edu.ifmg.produto.repository.RoleRepository;
+import br.edu.ifmg.produto.repository.UserRepository;
+import br.edu.ifmg.produto.resources.ProductResource;
+import br.edu.ifmg.produto.services.exceptions.DatabaseException;
+import br.edu.ifmg.produto.services.exceptions.ResourceNotFound;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-@Entity
-@Table(name = "tb_user")
-public class User implements UserDetails {
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String firstName;
-    private String lastName;
-    @Column(unique = true)
-    private String email;
-    private String password;
+@Service
+public class UserService implements UserDetailsService {
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tb_user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
+    @Autowired
+    private UserRepository repository;
 
-    )
-    private Set<Role> roles = new HashSet<>();
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
 
-    public User() {
+    @Transactional(readOnly = true)
+    public Page<UserDTO> findAll(Pageable pageable) {
+
+        Page<User> list = repository.findAll(pageable);
+        return list.map(u -> new UserDTO(u));
     }
 
-    public User(Long id, String firstName, String lastName, String email, String password) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
+    @Transactional(readOnly = true)
+    public UserDTO findById(Long id) {
+
+        Optional<User> opt = repository.findById(id);
+        User user = opt.orElseThrow(
+                () -> new ResourceNotFound("User not found"));
+        return new UserDTO(user);
     }
 
-    public User(User entity) {
-        this.id = entity.getId();
-        this.firstName = entity.getFirstName();
-        this.lastName = entity.getLastName();
-        this.email = entity.getEmail();
-        this.password = entity.getPassword();
+    @Transactional
+    public UserDTO insert(UserInsertDTO dto) {
+
+        User entity = new User();
+        copyDtoToEntity(dto,entity);
+        entity.setPassword(
+                passwordEncoder.encode(dto.getPassword()));
+        User novo = repository.save(entity);
+        return new UserDTO(novo);
+
     }
 
-    public User(User entity, Set<Role> roles) {
-        this(entity);
-        this.roles = roles;
+
+
+    private void copyDtoToEntity(UserDTO dto, User entity) {
+
+        entity.setFirstName(dto.getFirstName());
+        entity.setLastName(dto.getLastName());
+        entity.setEmail(dto.getEmail());
+
+        entity.getRoles().clear();
+        for (RoleDTO role : dto.getRoles()) {
+            Role r =
+                    roleRepository.getReferenceById(role.getId());
+            entity.getRoles().add(r);
+
+        }
+
+
     }
 
-    public void addRole(Role role) {
-        roles.add(role);
+    @Transactional
+    public UserDTO update(Long id, UserDTO dto) {
+
+        try {
+            User entity = repository.getReferenceById(id);
+            copyDtoToEntity(dto, entity);
+            entity = repository.save(entity);
+            return new UserDTO(entity);
+
+        }
+        catch(EntityNotFoundException e) {
+            throw new ResourceNotFound("User not found " + id);
+        }
     }
 
-    public boolean hasRole(String roleName) {
-        return
-                !roles.stream().filter(r ->
-                        r.getAuthority().equals(roleName)
-                ).toList().isEmpty();
-    }
 
-    public Long getId() {
-        return id;
-    }
+    @Transactional
+    public void delete(Long id) {
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFound("User not found " + id);
+        }
+        try {
+            repository.deleteById(id);
+        }
+        catch(DataIntegrityViolationException e) {
+            throw new DatabaseException("Integrity violation");
+        }
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof User user)) return false;
-        return Objects.equals(id, user.id);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        List<UserDetailsProjection> result
+                = repository.searchUserAndRoleByEmail(username);
+
+        if (result.isEmpty()){
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        User user = new User();
+        user.setEmail(result.get(0).getUsername());
+        user.setPassword(result.get(0).getPassword());
+        for (UserDetailsProjection p : result) {
+            user.addRole(new Role(p.getRoleId(),p.getAuthority() ));
+        }
+
+        return user;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+
+    public UserDTO signup( UserInsertDTO dto) {
+
+        User entity = new User();
+        copyDtoToEntity(dto,entity);
+
+        Role role =
+                roleRepository.findByAuthority("ROLE_OPERATOR");
+        entity.getRoles().clear();
+        entity.getRoles().add(role);
+        entity.setPassword(
+                passwordEncoder.encode(dto.getPassword()));
+        User novo = repository.save(entity);
+        return new UserDTO(novo);
+
+
     }
 }
-
-
 
 
 
